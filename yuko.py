@@ -1,6 +1,5 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import urllib.parse
-import time
 
 def read_results():
     file = open("yuko.txt", "r")
@@ -31,6 +30,9 @@ def read_results():
                 results[player] += game[player]
             else:
                 results[player] += median
+
+            if results[player] % 50 == 0:
+                results[player] = results[player] - 25
 
     return (results, games, players)
 
