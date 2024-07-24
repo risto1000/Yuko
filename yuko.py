@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import urllib.parse
 import os
 from datetime import datetime
+import shutil
 
 # set right address and path to file
 SERVER_ADDRESS = '10.160.0.29'
@@ -53,9 +54,16 @@ def print_results(results, games, players):
     print("")
     print("__|",end='')
     print(len(players) * 12 * "_")
-    i = 1
-    for game in games:
-        print(f"{i:>2}|",end='')
+
+    terminal_height = shutil.get_terminal_size().lines
+    if len(games) > terminal_height - 6:
+        i = len(games) - terminal_height + 6
+    else:
+        i = 0
+
+    for i in range(i,len(games)):
+        game = games[i]
+        print(f"{i + 1:>2}|",end='')
         values = list(game.values())
         values.sort()
         median = values[len(values) // 2]
