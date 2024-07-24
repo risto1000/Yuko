@@ -6,6 +6,7 @@ import shutil
 
 # set right address and path to file
 SERVER_ADDRESS = '10.160.0.29'
+PORT = 9999
 FILENAME = "/home/me/Documents/Yuko/yuko.txt"
 
 DELETE_MARKER = " [DELETED]"
@@ -48,6 +49,7 @@ def read_results():
 
     
 def print_results(results, games, players):
+    print(f"Server online on '{SERVER_ADDRESS}:{PORT}' Commands: /add /delete /undo /reset")
     print("  |", end='')
     for player in players:
         print(f" {player:>10} ",end='')
@@ -56,8 +58,8 @@ def print_results(results, games, players):
     print(len(players) * 12 * "_")
 
     terminal_height = shutil.get_terminal_size().lines
-    if len(games) > terminal_height - 6:
-        i = len(games) - terminal_height + 6
+    if len(games) > terminal_height - 8:
+        i = len(games) - terminal_height + 8
     else:
         i = 0
 
@@ -89,7 +91,7 @@ def add_game(query, game_amount):
         for key in query:
             input += f"{key}:{query[key][0]},"
         input = input[:-1]
-        print((5 + game_amount) * "\033[F")
+        print((6 + game_amount) * "\033[F")
         with open(FILENAME, "r") as file:
             lines = file.readlines()
         with open(FILENAME, "w") as file:
@@ -97,19 +99,19 @@ def add_game(query, game_amount):
             file.write(f"{input}\n")
         return "Game added successfully\n"
     except OSError:
-        print((5 + game_amount) * "\033[F")
+        print((6 + game_amount) * "\033[F")
         return "File unaccessible\n"
     except ValueError:
-        print((5 + game_amount) * "\033[F")
+        print((6 + game_amount) * "\033[F")
         return f"Input not valid (after {check})\n"
     
 
 def delete_last(game_amount, player_amount):
     try:
-        print((5 + game_amount) * "\033[F")
+        print((6 + game_amount) * "\033[F")
         for i in range(5 + game_amount): 
             print((3 + player_amount * 12) * " ")
-        print((6 + game_amount) * "\033[F")
+        print((7 + game_amount) * "\033[F")
         with open(FILENAME, "r") as file:
             lines = file.readlines()
 
@@ -132,7 +134,7 @@ def delete_last(game_amount, player_amount):
     
 def undo_delete(game_amount):
     try:
-        print((5 + game_amount) * "\033[F")
+        print((6 + game_amount) * "\033[F")
         with open(FILENAME, "r") as file:
             lines = file.readlines()
 
@@ -163,10 +165,11 @@ def undo_delete(game_amount):
 
 def reset(game_amount, player_amount):
     try:
-        print((5 + game_amount) * "\033[F")
-        for i in range(5 + game_amount): 
+        terminal_height = shutil.get_terminal_size().lines
+        print((5 + min(game_amount, terminal_height - 8)) * "\033[F")
+        for i in range(5 + min(game_amount, terminal_height - 8)): 
             print((3 + player_amount * 12) * " ")
-        print((6 + game_amount) * "\033[F")
+        print((7 + game_amount) * "\033[F")
 
         with open(FILENAME, "r") as file:
             lines = file.readlines()
@@ -222,7 +225,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 
-def run(server_class=HTTPServer, handler_class=RequestHandler, port=9999):
+def run(server_class=HTTPServer, handler_class=RequestHandler, port=PORT):
     server_address = (SERVER_ADDRESS, port)
     httpd = server_class(server_address, handler_class)
     try:
