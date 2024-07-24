@@ -1,21 +1,30 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import urllib.parse
+import os
+from datetime import datetime
+
+# set right address and path to file
+SERVER_ADDRESS = '10.160.0.29'
+FILENAME = "/home/me/Documents/Yuko/yuko.txt"
+
+DELETE_MARKER = " [DELETED]"
 
 def read_results():
-    file = open("yuko.txt", "r")
+    file = open(FILENAME, "r")
     results = {}
     games = []
     players = []
     for line in file:
-        line = line.rstrip()
-        splitted = line.split(',')
-        game = {}
-        for result in splitted:
-            points = result.split(':')
-            if not(points[0] in players):
-                players.append(points[0])
-            game[points[0]] = int(points[1])
-        games.append(game)
+        if DELETE_MARKER not in line:
+            line = line.rstrip()
+            splitted = line.split(',')
+            game = {}
+            for result in splitted:
+                points = result.split(':')
+                if not(points[0] in players):
+                    players.append(points[0])
+                game[points[0]] = int(points[1])
+            games.append(game)
     
     file.close
 
@@ -31,7 +40,7 @@ def read_results():
             else:
                 results[player] += median
 
-            if results[player] % 50 == 0:
+            if results[player] % 50 == 0 and results[player] > 0:
                 results[player] = results[player] - 25
 
     return (results, games, players)
@@ -73,9 +82,9 @@ def add_game(query, game_amount):
             input += f"{key}:{query[key][0]},"
         input = input[:-1]
         print((5 + game_amount) * "\033[F")
-        with open("yuko.txt", "r") as file:
+        with open(FILENAME, "r") as file:
             lines = file.readlines()
-        with open("yuko.txt", "w") as file:
+        with open(FILENAME, "w") as file:
             file.writelines(lines)
             file.write(f"{input}\n")
         return "Game added successfully\n"
@@ -93,15 +102,56 @@ def delete_last(game_amount, player_amount):
         for i in range(5 + game_amount): 
             print((3 + player_amount * 12) * " ")
         print((6 + game_amount) * "\033[F")
-        with open("yuko.txt", "r") as file:
+        with open(FILENAME, "r") as file:
             lines = file.readlines()
-        if lines:
-            lines = lines[:-1]
-            with open("yuko.txt", "w") as file:
+
+        i = None
+        for j in range(len(lines) - 1, -1, -1):
+            if DELETE_MARKER not in lines[j]:
+                i = j
+                break
+
+        if i is not None:
+            lines[i] = lines[i].rstrip("\n") + DELETE_MARKER + "\n"
+            with open(FILENAME, "w") as file:
                 file.writelines(lines)
-        return "Last game deleted\n"
+            return "Last game deleted\n"
+        else:
+            return "No games to delete\n"
+
     except OSError:
         return "File unaccessible\n"
+    
+def undo_delete(game_amount):
+    try:
+        print((5 + game_amount) * "\033[F")
+        with open(FILENAME, "r") as file:
+            lines = file.readlines()
+
+        if lines and DELETE_MARKER in lines[len(lines) - 1]:
+            i = None
+            marked = False
+            for j in range(len(lines) - 1, -1, -1):
+                if DELETE_MARKER in lines[j]:
+                    marked = True
+                    if j == 0: i = j
+                elif marked == True:
+                    i = j + 1
+                    break
+
+
+        
+            lines[i] = lines[i].replace(DELETE_MARKER, "")
+            with open(FILENAME, "w") as file:
+                file.writelines(lines)
+            return "Undo successful\n"
+        else:
+            return "No deletion to undo\n"
+        
+    except OSError:
+        return "File unaccessible\n"
+    
+
 
 def reset(game_amount, player_amount):
     try:
@@ -109,7 +159,18 @@ def reset(game_amount, player_amount):
         for i in range(5 + game_amount): 
             print((3 + player_amount * 12) * " ")
         print((6 + game_amount) * "\033[F")
-        with open("yuko.txt", "w") as file:
+
+        with open(FILENAME, "r") as file:
+            lines = file.readlines()
+        lines = [line for line in lines if DELETE_MARKER not in line]
+        with open(FILENAME, "w") as file:
+            file.writelines(lines)
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        name, ext = os.path.splitext(FILENAME)
+        os.rename(FILENAME, f"{name}_{timestamp}{ext}")
+
+        with open(FILENAME, "w") as file:
             pass
         return "Table reset\n"
     except OSError:
@@ -135,6 +196,10 @@ class RequestHandler(BaseHTTPRequestHandler):
             response = delete_last(len(games), len(players))
             (results, games, players) = read_results()
             print_results(results, games, players)
+        elif command == "undo":
+            response = undo_delete(len(games))
+            (results, games, players) = read_results()
+            print_results(results, games, players)
         elif command == "reset":
             response = reset(len(games), len(players))
             (results, games, players) = read_results()
@@ -150,7 +215,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
 
 def run(server_class=HTTPServer, handler_class=RequestHandler, port=9999):
-    server_address = ('', port)
+    server_address = (SERVER_ADDRESS, port)
     httpd = server_class(server_address, handler_class)
     try:
         httpd.serve_forever()
