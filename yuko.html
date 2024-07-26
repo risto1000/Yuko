@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yuko</title>
+    <style>
+        .player input[name="player"] {
+            width: 70px; /* Adjust as needed */
+        }
+        .player input[name="points"] {
+            width: 15px; /* Adjust as needed */
+        }
+        .player {
+            margin-bottom: 2px;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/get_players')
+                .then(response => response.json())
+                .then(players => {
+                    players.forEach(player => {
+                        addPlayerField(player);
+                    });
+                })
+                .catch(error => console.error('Error fetching players:', error));
+        });
+
+        function addPlayerField(name = '') {
+            const playerDiv = document.createElement('div');
+            playerDiv.classList.add('player');
+
+            const playerLabel = document.createElement('label');
+            // playerLabel.innerText = 'Player: ';
+            const playerInput = document.createElement('input');
+            playerInput.type = 'text';
+            playerInput.name = 'player';
+            playerInput.size = 15;
+            playerInput.value = name
+            
+            const pointsLabel = document.createElement('label');
+            // pointsLabel.innerText = ' Points: ';
+            const pointsInput = document.createElement('input');
+            pointsInput.type = 'text';
+            pointsInput.name = 'points';
+            pointsInput.size = 2;
+            pointsInput.value = 0;
+
+            const incrementButton = document.createElement('button');
+            incrementButton.type = 'button';
+            incrementButton.innerText = '+';
+            incrementButton.onclick = () => pointsInput.value = parseInt(pointsInput.value) + 1;
+
+            const decrementButton = document.createElement('button');
+            decrementButton.type = 'button';
+            decrementButton.innerText = '-';
+            decrementButton.onclick = () => pointsInput.value = parseInt(pointsInput.value) - 1;
+
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.innerText = 'Delete';
+            deleteButton.onclick = () => playerDiv.remove();
+
+            playerDiv.appendChild(playerLabel);
+            playerDiv.appendChild(playerInput);
+            playerDiv.appendChild(pointsLabel);
+            playerDiv.appendChild(pointsInput);
+            playerDiv.appendChild(incrementButton);
+            playerDiv.appendChild(decrementButton);
+            playerDiv.appendChild(deleteButton);
+
+            document.getElementById('players').appendChild(playerDiv);
+        }
+
+        function submitForm(event) {
+            event.preventDefault();
+
+            const players = document.querySelectorAll('.player');
+            let query = '';
+            
+            players.forEach((player, index) => {
+                const playerName = player.querySelector('input[name="player"]').value;
+                const playerPoints = player.querySelector('input[name="points"]').value;
+                if (playerName && playerPoints) {
+                    query += `${encodeURIComponent(playerName)}=${encodeURIComponent(playerPoints)}&`;
+                }
+            });
+
+            if (query.endsWith('&')) {
+                query = query.slice(0, -1);
+            }
+
+            fetch('/add?' + query, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            }).then(response => response.json())
+              .then(data => {
+                  console.log('Success:', data);
+              })
+              .catch((error) => {
+                  console.error('Error:', error);
+              });
+        }
+    </script>
+</head>
+<body>
+    <p>yuko.html</p>
+    <form onsubmit="submitForm(event)">
+        <div id="players"></div>
+        
+        <button type="button" onclick="addPlayerField()">Add Player</button>
+        <input type="submit" value="Add Game">
+    </form>
+    <form action="/delete" method="post">
+        <input type="submit" value="Delete Last Game">
+    </form>
+    <form action="/undo" method="post">
+        <input type="submit" value="Undo deletion">
+    </form>
+    <form action="/reset" method="post">
+        <input type="submit" value="Reset Game">
+    </form>
+</body>
+</html>

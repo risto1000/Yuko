@@ -3,11 +3,12 @@ import urllib.parse
 import os
 from datetime import datetime
 import shutil
+import json
 
 # set right address and path to file
 SERVER_ADDRESS = '10.160.0.29'
 PORT = 9999
-FILENAME = "/home/me/Documents/Yuko/yuko.txt"
+FILENAME = "yuko.txt"
 
 DELETE_MARKER = " [DELETED]"
 
@@ -49,7 +50,7 @@ def read_results():
 
     
 def print_results(results, games, players):
-    print(f"Server online on '{SERVER_ADDRESS}:{PORT}' Commands: /add /delete /undo /reset")
+    print(f"Server online on http://{SERVER_ADDRESS}:{PORT}")
     print("  |", end='')
     for player in players:
         print(f" {player:>10} ",end='')
@@ -194,6 +195,31 @@ class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed_path = urllib.parse.urlparse(self.path)
         command = parsed_path.path.lstrip('/')
+
+        if command =="get_players":
+            (results, games, players) = read_results()
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(players).encode())
+
+        else:
+            try:
+                with open("yuko.html", "r") as file:
+                    html_content = file.read()
+                    self.send_response(200)
+                    self.send_header('Content-type', 'text/html')
+                    self.end_headers()
+                    self.wfile.write(html_content.encode('utf-8'))
+            except FileNotFoundError:
+                self.send_response(404)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write(b"404 Not Found: The requested file does not exist.")
+
+    def do_POST(self):
+        parsed_path = urllib.parse.urlparse(self.path)
+        command = parsed_path.path.lstrip('/')
         query = urllib.parse.parse_qs(parsed_path.query)
 
         (results, games, players) = read_results()
@@ -215,10 +241,10 @@ class RequestHandler(BaseHTTPRequestHandler):
             response = reset(len(games), len(players))
             (results, games, players) = read_results()
             print_results(results, games, players)
-        self.send_response(200)
-        self.send_header('Content-type', 'text/plain')
+        self.send_response(301)
+        self.send_header('Location', '/')
         self.end_headers()
-        self.wfile.write(response.encode('utf-8'))
+
 
     def log_message(self, format, *args):
         return  # Suppress logging
