@@ -8,12 +8,14 @@ import json
 # set right address and path to file
 SERVER_ADDRESS = '10.160.0.29'
 PORT = 9999
-FILENAME = "yuko.txt"
+PATH = ""
+FILENAME_TXT = "yuko.txt"
+FILENAME_HTML = "yuko.html"
 
 DELETE_MARKER = " [DELETED]"
 
 def read_results():
-    file = open(FILENAME, "r")
+    file = open(f"{PATH}{FILENAME_TXT}", "r")
     results = {}
     games = []
     players = []
@@ -93,9 +95,9 @@ def add_game(query, game_amount):
             input += f"{key}:{query[key][0]},"
         input = input[:-1]
         print((6 + game_amount) * "\033[F")
-        with open(FILENAME, "r") as file:
+        with open(f"{PATH}{FILENAME_TXT}", "r") as file:
             lines = file.readlines()
-        with open(FILENAME, "w") as file:
+        with open(f"{PATH}{FILENAME_TXT}", "w") as file:
             file.writelines(lines)
             file.write(f"{input}\n")
         return "Game added successfully\n"
@@ -113,7 +115,7 @@ def delete_last(game_amount, player_amount):
         for i in range(5 + game_amount): 
             print((3 + player_amount * 12) * " ")
         print((7 + game_amount) * "\033[F")
-        with open(FILENAME, "r") as file:
+        with open(f"{PATH}{FILENAME_TXT}", "r") as file:
             lines = file.readlines()
 
         i = None
@@ -124,7 +126,7 @@ def delete_last(game_amount, player_amount):
 
         if i is not None:
             lines[i] = lines[i].rstrip("\n") + DELETE_MARKER + "\n"
-            with open(FILENAME, "w") as file:
+            with open(f"{PATH}{FILENAME_TXT}", "w") as file:
                 file.writelines(lines)
             return "Last game deleted\n"
         else:
@@ -136,7 +138,7 @@ def delete_last(game_amount, player_amount):
 def undo_delete(game_amount):
     try:
         print((6 + game_amount) * "\033[F")
-        with open(FILENAME, "r") as file:
+        with open(f"{PATH}{FILENAME_TXT}", "r") as file:
             lines = file.readlines()
 
         if lines and DELETE_MARKER in lines[len(lines) - 1]:
@@ -153,7 +155,7 @@ def undo_delete(game_amount):
 
         
             lines[i] = lines[i].replace(DELETE_MARKER, "")
-            with open(FILENAME, "w") as file:
+            with open(f"{PATH}{FILENAME_TXT}", "w") as file:
                 file.writelines(lines)
             return "Undo successful\n"
         else:
@@ -172,17 +174,17 @@ def reset(game_amount, player_amount):
             print((3 + player_amount * 12) * " ")
         print((7 + game_amount) * "\033[F")
 
-        with open(FILENAME, "r") as file:
+        with open(f"{PATH}{FILENAME_TXT}", "r") as file:
             lines = file.readlines()
         lines = [line for line in lines if DELETE_MARKER not in line]
-        with open(FILENAME, "w") as file:
+        with open(f"{PATH}{FILENAME_TXT}", "w") as file:
             file.writelines(lines)
 
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        name, ext = os.path.splitext(FILENAME)
-        os.rename(FILENAME, f"{name}_{timestamp}{ext}")
+        name, ext = os.path.splitext(FILENAME_TXT)
+        os.rename(f"{PATH}{FILENAME_TXT}", f"{PATH}{name}_{timestamp}{ext}")
 
-        with open(FILENAME, "w") as file:
+        with open(f"{PATH}{FILENAME_TXT}", "w") as file:
             pass
         return "Table reset\n"
     except OSError:
