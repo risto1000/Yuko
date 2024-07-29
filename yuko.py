@@ -6,7 +6,7 @@ import shutil
 import json
 
 # set right address and path to file
-SERVER_ADDRESS = '10.160.0.29'
+SERVER_ADDRESS = '0.0.0.0'
 PORT = 9999
 PATH = ""
 FILENAME_TXT = "yuko.txt"
@@ -45,8 +45,10 @@ def read_results():
             else:
                 results[player] += median
 
-            if results[player] % 50 == 0 and results[player] > 0:
-                results[player] = results[player] - 25
+            if results[player] % 100 == 0 and results[player] > 0:
+                results[player] = results[player] - 50
+            elif results[player] % 100 == 50:
+                results[player] = results[player] -25
 
     return (results, games, players)
 
