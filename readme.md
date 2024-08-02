@@ -1,6 +1,4 @@
-
-```markdown
-# Project Name
+# Yuko
 
 Brief description of your project.
 
@@ -51,4 +49,3 @@ Follow these steps to set up and run the project:
 
 Add any other relevant information, such as configuration options, troubleshooting tips, or project structure details.
 
-```
