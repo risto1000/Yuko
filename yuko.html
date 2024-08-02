@@ -14,6 +14,13 @@
         .player {
             margin-bottom: 2px;
         }
+        #results {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            white-space: pre;
+            font-family: monospace;
+        }
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -104,6 +111,15 @@
                   console.error('Error:', error);
               });
         }
+
+        function fetchResults() {
+            fetch('/get_results')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('results').innerHTML = '<h3>Game Results:</h3><pre>' + data + '</pre>';
+                })
+                .catch(error => console.error('Error fetching results:', error));
+        }
     </script>
 </head>
 <body>
@@ -123,5 +139,9 @@
     <form action="/reset" method="post">
         <input type="submit" value="Reset Game">
     </form>
+
+    <div id="results"></div>
+
+    <button onclick="fetchResults()">Refresh Results</button>
 </body>
 </html>

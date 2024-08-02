@@ -6,13 +6,20 @@ import shutil
 import json
 
 # set right address and path to file
-SERVER_ADDRESS = '0.0.0.0'
+SERVER_ADDRESS = '10.160.0.72'
 PORT = 9999
 PATH = ""
 FILENAME_TXT = "yuko.txt"
 FILENAME_HTML = "yuko.html"
 
 DELETE_MARKER = " [DELETED]"
+
+def get_yuko_contents():
+    try:
+        with open(f"{PATH}{FILENAME_TXT}", "r") as file:
+            return file.read()
+    except FileNotFoundError:
+        return "No results available yet."
 
 def read_results():
     file = open(f"{PATH}{FILENAME_TXT}", "r")
@@ -195,21 +202,54 @@ def reset(game_amount, player_amount):
 class RequestHandler(BaseHTTPRequestHandler):
     (results, games, players) = read_results()
     print_results(results, games, players)
+    
+    def format_results(self, results, games, players):
+        output = "  |"
+        for player in players:
+            output += f" {player:>10} "
+        output += "\n__|" + len(players) * 12 * "_" + "\n"
+
+        for i, game in enumerate(games):
+            output += f"{i + 1:>2}|"
+            values = list(game.values())
+            values.sort()
+            median = values[len(values) // 2]
+            for player in players:
+                if player in game:
+                    output += f" {game[player]:10} "
+                else:
+                    output += f"        ({median:2})"
+            output += "\n"
+
+        output += "__|" + len(players) * 12 * "_" + "\n =|"
+        for player in results:
+            output += f" {results[player]:10} "
+        output += "\n"
+
+        return output
 
     def do_GET(self):
         parsed_path = urllib.parse.urlparse(self.path)
         command = parsed_path.path.lstrip('/')
 
-        if command =="get_players":
+        if command == "get_players":
             (results, games, players) = read_results()
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps(players).encode())
 
+        elif command == "get_results":
+            (results, games, players) = read_results()
+            formatted_results = self.format_results(results, games, players)
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/plain')
+            self.end_headers()
+            self.wfile.write(formatted_results.encode())
+
         else:
             try:
-                with open("yuko.html", "r") as file:
+                with open(f"{PATH}{FILENAME_HTML}", "r") as file:
                     html_content = file.read()
                     self.send_response(200)
                     self.send_header('Content-type', 'text/html')
