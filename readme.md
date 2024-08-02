@@ -12,8 +12,8 @@ Follow these steps to set up and run the project:
 
 2. Clone this repository:
    ```
-   git clone https://github.com/yourusername/your-repo-name.git
-   cd your-repo-name
+   git clone https://github.com/risto1000/Yuko.git
+   cd Yuko
    ```
 
 3. Create a virtual environment:
