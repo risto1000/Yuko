@@ -1,0 +1,13 @@
+asdfas:1,d:1,s:2,sa:3
+asdfas:2,d:1,s:1,sa:1
+asdfas:0,d:1,s:1,sa:0,a:0
+asdfas:0,d:0,s:0,sa:1,a:1
+asdfas:0,d:0,s:0,sa:1,a:1
+asdfas:0,d:0,s:0,sa:1,a:1
+asdfas:0,d:0,s:0,sa:1,a:1
+asdfas:0,d:0,s:0,sa:1,a:1
+asdfas:1,d:1,s:1,sa:1,a:1
+asdfas:0,d:0,s:0,sa:1,a:1,asdfasfd:0
+asdfas:0,d:1,s:0,sa:2,a:0,asdfasfd:0
+asdfas:1,d:1,s:1,sa:1,a:0,asdfasfd:1
+asdfas:2,d:0,s:1,sa:1,a:1,asdfasfd:2
